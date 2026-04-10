@@ -1,0 +1,100 @@
+# Register api
+POST http://localhost:8899/api/auth/register HTTP/1.1
+content-type: application/json
+
+{
+  "username": "someone_dev",
+  "email": "someone@ggg.mail",
+  "firstName": "someone",
+  "lastName": "codecamp",
+  "password": "123456"
+}
+###
+
+# Login api
+POST http://localhost:8899/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "someone@ggg.mail",
+  "password": "123456"
+}
+###
+
+
+
+### Get Current User Profile
+GET http://localhost:8899/api/auth/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+
+
+
+### Create Rescue Post (สร้างโพสต์ขอความช่วยเหลือ - หมา)
+POST http://localhost:8899/api/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+Content-Type: application/json
+
+{
+  "message": "พบสุนัขบาดเจ็บหน้าเซเว่น",
+  "postType": "RESCUE",
+  "details": {
+    "animalType": "DOG",
+    "location": "สุขุมวิท 101",
+    "isHelperNeeded": true
+  }
+}
+
+### Create Adoption Post (สร้างโพสต์หาบ้านใหม่)
+POST http://localhost:8899/api/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+Content-Type: application/json
+
+{
+  "message": "น้องแมวส้มหาบ้านที่อบอุ่นครับ",
+  "postType": "ADOPT"
+}
+
+
+
+### My Posts Tab (ดูโพสต์ที่เราสร้างเองทั้งหมด)
+GET http://localhost:8899/api/posts/my-activity?tab=posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+
+### My Rescues Tab (ดูเคสที่เรากดรับอาสาช่วยไว้)
+GET http://localhost:8899/api/posts/my-activity?tab=rescues
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+
+
+
+### Delete Post (ลบโพสต์ตนเอง)
+DELETE http://localhost:8899/api/posts/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+
+
+### ตรวจสอบ ID โพสต์ที่มีอยู่
+GET http://localhost:8899/api/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+
+### 1. เพิ่มคอมเมนท์ (ต้องมี Token)
+POST http://localhost:8899/api/posts/comment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+Content-Type: application/json
+
+{
+  "postId": 2,
+  "message": "กำลังเดินทางไปช่วยน้องครับ!"
+}
+
+### 2. ดึงคอมเมนท์ (ต้องมี Token แล้วเช่นกัน)
+GET http://localhost:8899/api/posts/2/comments
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+
+
+### Toggle Like (ครั้งแรกจะ Liked, กดซ้ำจะ Unliked)
+POST http://localhost:8899/api/posts/like
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwidXNlcm5hbWUiOiJzb21lb25lX2RldiIsImlhdCI6MTc3Mzk5NTc0MCwiZXhwIjoxNzc0NjAwNTQwfQ.IkM2SMEGvaLTfZrFoE77IoB9JLXR0U1QC_a2OGPeB-g
+Content-Type: application/json
+
+{
+  "postId": 2
+}

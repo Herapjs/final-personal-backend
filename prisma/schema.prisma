@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+
+}
+
+// --- 1. User System ---
+model User {
+  id           Int     @id @default(autoincrement())
+  username     String  @unique
+  password     String
+  email        String  @unique
+  firstName    String
+  lastName     String
+  bio          String? @db.Text
+  profileImage String? @default("default_profile.png")
+
+  comments Comment[]
+  likes    Like[]
+
+  // การเป็นอาสาสมัครช่วยเคสผู้อื่น
+  dogRescues DogCase[]  @relation("DogHelper")
+  catRescues CatCase[]  @relation("CatHelper")
+  adoptions  Adoption[] @relation("AdopterRelation")
+  adoptionRequests AdoptionRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+}
+
+// --- 2. Post System ---
+enum PostType {
+  RESCUE // รวมหมาและแมวเป็นประเภทเดียวในการจัดการโพสต์หลัก
+  ADOPT
+  HAPPY
+}
+
+model Post {
+  id       Int       @id @default(autoincrement())
+  message  String?   @db.Text
+  image    String?
+  postType PostType
+  userId   Int
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+
+  dogCase  DogCase?
+  catCase  CatCase?
+  adoption Adoption?
+  adoptionRequests AdoptionRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- 3. Rescue & Adoption Logic ---
+enum CaseStatus {
+  PENDING
+  RESERVED
+  COMPLETED
+}
+
+model DogCase {
+  id             Int        @id @default(autoincrement())
+  postId         Int        @unique
+  post           Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  status         CaseStatus @default(PENDING)
+  location       String
+  urgentLevel    String  @default("LOW")
+  isHelperNeeded Boolean    @default(true) // ตัวกำหนดว่าจะมีปุ่มจองเคสหรือไม่
+  helperId       Int?
+  helper         User?      @relation("DogHelper", fields: [helperId], references: [id])
+}
+
+model CatCase {
+  id             Int        @id @default(autoincrement())
+  postId         Int        @unique
+  post           Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  status         CaseStatus @default(PENDING)
+  location       String
+  urgentLevel    String  @default("LOW")
+  isHelperNeeded Boolean    @default(true) // ตัวกำหนดว่าจะมีปุ่มจองเคสหรือไม่
+  helperId       Int?
+  helper         User?      @relation("CatHelper", fields: [helperId], references: [id])
+}
+
+model Adoption {
+  id        Int     @id @default(autoincrement())
+  postId    Int     @unique
+  post      Post    @relation(fields: [postId], references: [id])
+  location       String?
+  adopterId Int?
+  adopter   User?   @relation("AdopterRelation", fields: [adopterId], references: [id])
+  isConfirm Boolean @default(false)
+}
+
+// --- 4. Social Interactions ---
+model Comment {
+  id        Int      @id @default(autoincrement())
+  message   String?  @db.Text
+  image String?
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Like {
+  userId    Int
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+}
+
+// --- 5. Adoption Request System ---
+model AdoptionRequest {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int
+  status         CaseStatus @default(PENDING)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId]) // ป้องกันคนเดียวส่งคำขอซ้ำในโพสต์เดิม
+}
