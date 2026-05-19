@@ -8,7 +8,14 @@ import notFoundMiddleware from './middlewares/notFound.middleware.js';
 const app = express(); 
 
 // --- 1. Global Middlewares ---
-app.use(cors());
+// app.use(cors());
+// ตัวอย่างใน src/app.js หรือ src/server.js
+const cors = require('cors');
+
+app.use(cors({
+  origin: 'https://final-personal-frontend.vercel.app', // URL หน้าบ้านของคุณบน Vercel
+  credentials: true
+}));
 app.use(express.json()); // แปลงข้อมูลที่ส่งมาเป็น JSON ให้กลายเป็น Object ใน JavaScript (ทำให้เราใช้ req.body ได้)
 
 // ใช้การส่งข้อมูลผ่าน Form (เช่น การอัปโหลดรูปภาพพร้อมกับข้อความ) มันจะช่วยแกะข้อมูล text ที่แนบมากับฟอร์มได้
