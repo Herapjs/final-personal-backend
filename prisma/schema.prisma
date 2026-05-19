@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -10,133 +5,134 @@ generator client {
 
 datasource db {
   provider = "mysql"
-
 }
 
-// --- 1. User System ---
 model User {
-  id           Int     @id @default(autoincrement())
-  username     String  @unique
-  password     String
-  email        String  @unique
-  firstName    String
-  lastName     String
-  bio          String? @db.Text
-  profileImage String? @default("default_profile.png")
-
-  comments Comment[]
-  likes    Like[]
-
-  // การเป็นอาสาสมัครช่วยเคสผู้อื่น
-  dogRescues DogCase[]  @relation("DogHelper")
-  catRescues CatCase[]  @relation("CatHelper")
-  adoptions  Adoption[] @relation("AdopterRelation")
+  id               Int               @id @default(autoincrement())
+  username         String            @unique
+  password         String
+  email            String            @unique
+  firstName        String
+  lastName         String
+  bio              String?           @db.Text
+  profileImage     String?           @default("default_profile.png")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  adoptions        Adoption[]        @relation("AdopterRelation")
   adoptionRequests AdoptionRequest[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
-}
-
-// --- 2. Post System ---
-enum PostType {
-  RESCUE // รวมหมาและแมวเป็นประเภทเดียวในการจัดการโพสต์หลัก
-  ADOPT
-  HAPPY
+  catRescues       CatCase[]         @relation("CatHelper")
+  comments         Comment[]
+  dogRescues       DogCase[]         @relation("DogHelper")
+  likes            Like[]
+  posts            Post[]
 }
 
 model Post {
-  id       Int       @id @default(autoincrement())
-  message  String?   @db.Text
-  image    String?
-  postType PostType
-  userId   Int
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments Comment[]
-  likes    Like[]
-
-  dogCase  DogCase?
-  catCase  CatCase?
-  adoption Adoption?
+  id               Int               @id @default(autoincrement())
+  message          String?           @db.Text
+  image            String?
+  postType         PostType
+  userId           Int
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  adoption         Adoption?
   adoptionRequests AdoptionRequest[]
+  catCase          CatCase?
+  comments         Comment[]
+  dogCase          DogCase?
+  likes            Like[]
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// --- 3. Rescue & Adoption Logic ---
-enum CaseStatus {
-  PENDING
-  RESERVED
-  COMPLETED
+  @@index([userId], map: "Post_userId_fkey")
 }
 
 model DogCase {
   id             Int        @id @default(autoincrement())
   postId         Int        @unique
-  post           Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
   status         CaseStatus @default(PENDING)
   location       String
-  urgentLevel    String  @default("LOW")
-  isHelperNeeded Boolean    @default(true) // ตัวกำหนดว่าจะมีปุ่มจองเคสหรือไม่
+  urgentLevel    String     @default("LOW")
+  isHelperNeeded Boolean    @default(true)
   helperId       Int?
   helper         User?      @relation("DogHelper", fields: [helperId], references: [id])
+  post           Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([helperId], map: "DogCase_helperId_fkey")
 }
 
 model CatCase {
   id             Int        @id @default(autoincrement())
   postId         Int        @unique
-  post           Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
   status         CaseStatus @default(PENDING)
   location       String
-  urgentLevel    String  @default("LOW")
-  isHelperNeeded Boolean    @default(true) // ตัวกำหนดว่าจะมีปุ่มจองเคสหรือไม่
+  urgentLevel    String     @default("LOW")
+  isHelperNeeded Boolean    @default(true)
   helperId       Int?
   helper         User?      @relation("CatHelper", fields: [helperId], references: [id])
+  post           Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([helperId], map: "CatCase_helperId_fkey")
 }
 
 model Adoption {
   id        Int     @id @default(autoincrement())
   postId    Int     @unique
-  post      Post    @relation(fields: [postId], references: [id])
-  location       String?
+  location  String?
   adopterId Int?
-  adopter   User?   @relation("AdopterRelation", fields: [adopterId], references: [id])
   isConfirm Boolean @default(false)
+  adopter   User?   @relation("AdopterRelation", fields: [adopterId], references: [id])
+  post      Post    @relation(fields: [postId], references: [id])
+
+  @@index([adopterId], map: "Adoption_adopterId_fkey")
 }
 
-// --- 4. Social Interactions ---
 model Comment {
   id        Int      @id @default(autoincrement())
   message   String?  @db.Text
-  image String?
+  image     String?
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   postId    Int
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId], map: "Comment_postId_fkey")
+  @@index([userId], map: "Comment_userId_fkey")
 }
 
 model Like {
   userId    Int
   postId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, postId])
+  @@index([postId], map: "Like_postId_fkey")
 }
 
-// --- 5. Adoption Request System ---
 model AdoptionRequest {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   postId    Int
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    Int
-  status         CaseStatus @default(PENDING)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  status    CaseStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, userId]) // ป้องกันคนเดียวส่งคำขอซ้ำในโพสต์เดิม
+  @@unique([postId, userId])
+  @@index([userId], map: "AdoptionRequest_userId_fkey")
+}
+
+enum PostType {
+  RESCUE
+  ADOPT
+  HAPPY
+}
+
+enum CaseStatus {
+  PENDING
+  RESERVED
+  COMPLETED
 }

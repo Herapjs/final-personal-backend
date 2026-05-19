@@ -1,25 +1,28 @@
-import "dotenv/config"; //ทำหน้าที่โหลดค่าตัวแปรสภาพแวดล้อมจากไฟล์ .env (เช่น User, Password ของฐานข้อมูล) เข้ามาในระบบเพื่อให้ process.env เรียกใช้งานได้
-import { PrismaMariaDb } from "@prisma/adapter-mariadb"; //ตัวช่วยจัดการการเชื่อมต่อ (Adapter) เฉพาะสำหรับ MariaDB
-import { PrismaClient } from "../generated/prisma/client.js"; //ตัวหลักของ Prisma ที่เราจะใช้เขียนคำสั่งจัดการข้อมูล (เช่น prisma.user.findMany())
+import "dotenv/config"; //โหลดค่าตัวแปรสภาพแวดล้อมจากไฟล์ .env
+import { PrismaMariaDb } from "@prisma/adapter-mariadb"; //Adapter สำหรับ MariaDB
+import { PrismaClient } from "../generated/prisma/client.js"; //Prisma client ที่สร้างจาก schema
 
-// const adapter = new PrismaMariaDb({
-//  host: process.env.DATABASE_HOST,
-//  user: process.env.DATABASE_USER,
-//  password: process.env.DATABASE_PASSWORD,
-//  database: process.env.DATABASE_NAME,
-//  connectionLimit: 5, //เป็นการจำกัดว่าให้เปิดท่อเชื่อมต่อค้างไว้สูงสุดได้ 5 ท่อ พร้อมกัน ช่วยป้องกันไม่ให้แอปพลิเคชันแย่งทรัพยากรฐานข้อมูลจนเกินไปจนระบบล่ม
-// });
-
+// Parse DATABASE_URL and configure adapter with higher limits/timeouts
 const databaseUrl = new URL(process.env.DATABASE_URL);
 
 const adapter = new PrismaMariaDb({
-    host: databaseUrl.hostname,
-    port: parseInt(databaseUrl.port) || 3306,
-    user: decodeURIComponent(databaseUrl.username),
-    password: decodeURIComponent(databaseUrl.password),
-    database: databaseUrl.pathname.slice(1),
-    connectionLimit: 20
-})
-const prisma = new PrismaClient({ adapter });
+        host: databaseUrl.hostname,
+        port: parseInt(databaseUrl.port) || 3306,
+        user: decodeURIComponent(databaseUrl.username),
+        password: decodeURIComponent(databaseUrl.password),
+        database: databaseUrl.pathname.slice(1),
+        connectionLimit: 20,
+        // increase connect timeout to give the socket more time to create on slow networks
+        connectTimeout: 10000
+});
+
+// Use a global singleton in Node (prevents exhausting DB connections during dev/hot-reload)
+let prisma;
+if (globalThis.prismaClient) {
+    prisma = globalThis.prismaClient;
+} else {
+    prisma = new PrismaClient({ adapter });
+    globalThis.prismaClient = prisma;
+}
 
 export { prisma };
