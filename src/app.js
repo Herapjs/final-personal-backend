@@ -13,8 +13,8 @@ const app = express();
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'https://final-personal-frontend.vercel.app', // URL หน้าบ้านของคุณบน Vercel
-  credentials: true,                                    // อนุญาตให้ส่ง Cookie / Token แลกเปลี่ยนกันได้
+  origin: 'https://final-personal-frontend.vercel.app', 
+  credentials: true,                                    
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
